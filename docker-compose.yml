@@ -12,6 +12,12 @@ services:
       - "3002"  # MCP Server
     volumes:
       - ./root/config:/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
     environment:
       - LANG=C.UTF-8
