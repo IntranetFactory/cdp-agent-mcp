@@ -8,7 +8,7 @@ MCP server for Chrome DevTools browser automation. Fork of [chrome-devtools-mcp]
 - **Config file** — Single `cdp-agent-mcp.config.json` drives all settings, no CLI flags needed
 - **Screenshots to disk** — Never embedded as base64. Saved to disk, download URL returned. Keeps context small
 - **Screenshot route** — `/screenshot/:filename` serves saved screenshots over HTTP
-- **Docker image** — Based on [linuxserver/baseimage-kasmvnc](https://github.com/linuxserver/docker-baseimage-kasmvnc) with Chrome preinstalled, managed by s6-overlay
+- **Docker image** — Based on [linuxserver/baseimage-kasmvnc](https://github.com/linuxserver/docker-baseimage-kasmvnc) with Chrome preinstalled. Openbox autostart launches Chrome with CDP on port 9222, then starts the MCP server connected to it
 
 ## Prerequisites
 
@@ -36,9 +36,8 @@ Everything is configured in **`cdp-agent-mcp.config.json`**. The server searches
 ```json
 {
   "browser": {
-    "headless": true,
-    "viewport": "1280x720",
-    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
+    "cdpEndpoint": "http://127.0.0.1:9222",
+    "viewport": "1280x720"
   },
   "server": {
     "transport": "http",
@@ -124,7 +123,7 @@ Build once, then run. This is what the Docker image does.
 
 ## Docker
 
-The image is based on `linuxserver/baseimage-kasmvnc` — Chrome is preinstalled, KasmVNC provides a browser-accessible desktop for watching the browser, and s6-overlay manages the MCP server process.
+The image is based on `linuxserver/baseimage-kasmvnc` — Chrome is preinstalled, KasmVNC provides a browser-accessible desktop for watching the browser. An openbox autostart script launches Chrome with CDP enabled on port 9222, then starts the MCP server connected to it.
 
 ### Build and run
 

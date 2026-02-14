@@ -15,17 +15,16 @@ ENV DISPLAY=:1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Puppeteer config — Chrome is installed via puppeteer below
-ENV PUPPETEER_BROWSERS_PATH=/app/puppeteer-browsers
-ENV PUPPETEER_SKIP_DOWNLOAD=false
+# Chrome is already installed in the kasmvnc base image — tell puppeteer to skip downloading its own
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 # Disable npm update check
 RUN npm config set update-notifier false > /dev/null
 
-# Install Chrome via puppeteer (includes all dependencies)
+# Install Node.js dependencies only (no browser download)
 COPY package.json package-lock.json* ./
-RUN npx puppeteer browsers install chrome --install-deps && \
-    npm ci --ignore-scripts && \
+RUN npm ci --ignore-scripts && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
 
@@ -35,7 +34,7 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 RUN npm run build
 
-# Copy s6 service overlay
+# Copy s6 service overlay and defaults
 COPY root/ /
 
 # Default config goes into /defaults — linuxserver init copies to /config on first run

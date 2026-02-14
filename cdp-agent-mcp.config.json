@@ -1,8 +1,7 @@
 {
   "browser": {
-    "headless": true,
-    "viewport": "1280x720",
-    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
+    "cdpEndpoint": "http://127.0.0.1:9222",
+    "viewport": "1280x720"
   },
   "server": {
     "transport": "http",

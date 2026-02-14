@@ -1,0 +1,39 @@
+xsetroot -solid blue
+# Start Chrome with CDP enabled on port 9222
+/usr/bin/google-chrome \
+  --remote-debugging-port=9222 \
+  --remote-debugging-address=0.0.0.0 \
+  --user-data-dir=/config/chrome-data \
+  --no-first-run \
+  --no-default-browser-check \
+  --disable-dev-shm-usage \
+  --no-sandbox \
+  --disable-gpu \
+  --disable-software-rasterizer \
+  --disable-features=IsolateOrigins,site-per-process \
+  --disable-blink-features=AutomationControlled \
+  --disable-background-networking \
+  --disable-background-timer-throttling \
+  --disable-backgrounding-occluded-windows \
+  --disable-breakpad \
+  --disable-client-side-phishing-detection \
+  --disable-component-extensions-with-background-pages \
+  --disable-default-apps \
+  --disable-extensions \
+  --disable-features=TranslateUI \
+  --disable-hang-monitor \
+  --disable-ipc-flooding-protection \
+  --disable-popup-blocking \
+  --disable-prompt-on-repost \
+  --disable-renderer-backgrounding \
+  --disable-sync \
+  --metrics-recording-only \
+  --no-crash-upload \
+  --enable-automation \
+  --password-store=basic \
+  --use-mock-keychain \
+  --enable-features=NetworkService,NetworkServiceInProcess &
+# Wait for Chrome to start
+sleep 2
+# Start MCP server connected to Chrome's CDP endpoint
+node /app/build/src/index.js --config /config/cdp-agent-mcp.config.json
