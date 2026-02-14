@@ -58,5 +58,9 @@ COPY root/ /
 # Default config — linuxserver init copies to /config on first run
 COPY cdp-agent-mcp.config.json /defaults/cdp-agent-mcp.config.json
 
+# Allow BASE_URL to be set at build time (e.g. --build-arg BASE_URL=https://mcp.example.com)
+ARG BASE_URL=""
+ENV BASE_URL=${BASE_URL}
+
 EXPOSE 3002 9222
 VOLUME /config
