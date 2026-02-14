@@ -25,8 +25,8 @@ RUN apt-get update && \
     apt-get purge -y build-essential pkg-config libpulse-dev && \
     apt-get autoremove -y
 
-# Let Puppeteer download Chrome during npm ci (cache outside /config which is a volume mount)
-ENV PUPPETEER_SKIP_DOWNLOAD=false
+# Skip Puppeteer's pinned Chrome — we install chrome@stable separately
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_CACHE_DIR=/opt/puppeteer
 
 # Disable npm update check
@@ -39,10 +39,10 @@ RUN npm ci && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
 
-# Install Chrome system dependencies and symlink to /usr/bin for autostart
+# Install Chrome stable with system dependencies, symlink to /usr/bin for autostart
 RUN apt-get update && \
-    npx puppeteer browsers install chrome --install-deps && \
-    ln -sf $(node -e "console.log(require('puppeteer').executablePath())") /usr/bin/google-chrome
+    CHROME_PATH=$(npx @puppeteer/browsers install chrome@stable --install-deps | awk '{print $2}') && \
+    ln -sf "$CHROME_PATH" /usr/bin/google-chrome
 
 # Copy source and build
 COPY tsconfig.json ./
