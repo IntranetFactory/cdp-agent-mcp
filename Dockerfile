@@ -20,15 +20,10 @@ RUN apt-get update && \
     apt-get install -y ca-certificates curl gnupg && \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
-
-# Rebuild kclient native modules (pulseaudio2) to match Node.js 22
-RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential pkg-config libpulse-dev && \
     cd /kclient && npm rebuild && \
     apt-get purge -y build-essential pkg-config libpulse-dev && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y
 
 # Let Puppeteer download Chrome during npm ci
 ENV PUPPETEER_SKIP_DOWNLOAD=false
