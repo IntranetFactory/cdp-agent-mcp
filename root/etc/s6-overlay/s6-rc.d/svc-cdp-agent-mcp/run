@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+cd /app || exit 1
+
+# Use config from /config volume (linuxserver convention)
+exec s6-notifyoncheck \
+    node build/src/index.js --config /config/cdp-agent-mcp.config.json

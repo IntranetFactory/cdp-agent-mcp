@@ -57,25 +57,48 @@ export interface AppConfig {
 const DEFAULT_CONFIG_FILENAME = 'cdp-agent-mcp.config.json';
 
 /**
- * Loads config from the given path, or from cdp-agent-mcp.config.json in CWD.
- * Returns empty config if the file does not exist.
+ * Search paths for config file, in order of priority:
+ * 1. Explicit --config path
+ * 2. ./cdp-agent-mcp.config.json (CWD)
+ * 3. /config/cdp-agent-mcp.config.json (Docker volume convention)
+ */
+const CONFIG_SEARCH_PATHS = [
+  path.resolve(process.cwd(), DEFAULT_CONFIG_FILENAME),
+  path.resolve('/config', DEFAULT_CONFIG_FILENAME),
+];
+
+/**
+ * Loads config from the given path, or searches default locations.
+ * Returns empty config if no file is found.
  */
 export function loadConfig(configPath?: string): AppConfig {
-  const resolvedPath = configPath
-    ? path.resolve(configPath)
-    : path.resolve(process.cwd(), DEFAULT_CONFIG_FILENAME);
+  if (configPath) {
+    const resolvedPath = path.resolve(configPath);
+    return readConfigFile(resolvedPath, true);
+  }
 
+  for (const candidate of CONFIG_SEARCH_PATHS) {
+    try {
+      fs.accessSync(candidate);
+      return readConfigFile(candidate, false);
+    } catch {
+      // not found, try next
+    }
+  }
+
+  logger('No config file found, using defaults/CLI args');
+  return {};
+}
+
+function readConfigFile(filePath: string, explicit: boolean): AppConfig {
   try {
-    const content = fs.readFileSync(resolvedPath, 'utf-8');
+    const content = fs.readFileSync(filePath, 'utf-8');
     const config = JSON.parse(content) as AppConfig;
-    console.error(`Loaded config from ${resolvedPath}`);
+    console.error(`Loaded config from ${filePath}`);
     return config;
   } catch (err) {
-    if (configPath) {
-      // Explicit path was given — warn if not found
-      console.error(`Warning: Could not load config from ${resolvedPath}: ${(err as Error).message}`);
-    } else {
-      logger(`No config file found at ${resolvedPath}, using defaults/CLI args`);
+    if (explicit) {
+      console.error(`Warning: Could not load config from ${filePath}: ${(err as Error).message}`);
     }
     return {};
   }

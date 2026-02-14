@@ -1,16 +1,8 @@
 {
   "browser": {
-    "cdpEndpoint": "",
-    "wsEndpoint": "",
     "headless": true,
-    "executablePath": "",
-    "channel": "stable",
-    "isolated": false,
-    "userDataDir": "",
     "viewport": "1280x720",
-    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
-    "acceptInsecureCerts": false,
-    "proxyServer": ""
+    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
   },
   "server": {
     "transport": "http",
