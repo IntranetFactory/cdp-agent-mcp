@@ -15,7 +15,7 @@ import {
   isInitializeRequest,
 } from './third_party/index.js';
 import {getScreenshotPath, getScreenshotsDir} from './screenshots.js';
-import {logger} from './logger.js';
+import {logger, logError} from './logger.js';
 
 type Transport = StreamableHTTPServerTransport | SSEServerTransport;
 
@@ -146,7 +146,7 @@ export function createHttpServer(
       res.writeHead(404, {'Content-Type': 'text/plain'});
       res.end('Not Found');
     } catch (error) {
-      logger('HTTP handler error:', error);
+      logError('HTTP handler error:', error);
       if (!res.headersSent) {
         sendJsonRpcError(res, 500, -32603, 'Internal server error');
       }
@@ -171,7 +171,7 @@ export function createHttpServer(
         await transports[sessionId].close();
         delete transports[sessionId];
       } catch (error) {
-        logger(`Error closing transport for session ${sessionId}:`, error);
+        logError(`Error closing transport for session ${sessionId}:`, error);
       }
     }
     httpServer.close();

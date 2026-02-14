@@ -14,7 +14,7 @@ import {cliOptions, parseArguments} from './cli.js';
 import {loadConfig, applyConfigToArgs} from './config.js';
 import {createHttpServer} from './http-server.js';
 import {loadIssueDescriptions} from './issue-descriptions.js';
-import {logger, saveLogsToFile} from './logger.js';
+import {logger, logError, saveLogsToFile} from './logger.js';
 import {McpContext} from './McpContext.js';
 import {McpResponse} from './McpResponse.js';
 import {Mutex} from './Mutex.js';
@@ -66,7 +66,7 @@ if (args.usageStatistics) {
 }
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger('Unhandled promise rejection', promise, reason);
+  logError('Unhandled promise rejection', promise, reason);
 });
 
 logger(`Starting Chrome DevTools MCP Server v${VERSION}`);
@@ -231,7 +231,7 @@ function registerTool(tool: ToolDefinition): void {
         }
         return result;
       } catch (err) {
-        logger(`${tool.name} error:`, err, err?.stack);
+        logError(`${tool.name} error:`, err, err?.stack);
         let errorText = err && 'message' in err ? err.message : String(err);
         if ('cause' in err && err.cause) {
           errorText += `\nCause: ${err.cause.message}`;

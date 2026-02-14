@@ -45,3 +45,13 @@ export function flushLogs(
 }
 
 export const logger = debug(mcpDebugNamespace);
+
+/**
+ * Always logs to stderr, regardless of DEBUG env var.
+ * Use for actual errors that should never be silenced.
+ */
+export function logError(message: string, ...args: unknown[]): void {
+  console.error(message, ...args);
+  // Also send to debug channel so it appears in log files if configured
+  logger(message, ...args);
+}
