@@ -33,17 +33,17 @@ Everything is configured in **`cdp-agent-mcp.config.json`**. The server searches
 2. `./cdp-agent-mcp.config.json` in the current working directory
 3. `/config/cdp-agent-mcp.config.json` (Docker volume mount)
 
+**Local development** (`cdp-agent-mcp.config.json` — launches Chrome via puppeteer):
+
 ```json
 {
   "browser": {
-    "cdpEndpoint": "http://127.0.0.1:9222",
     "viewport": "1280x720"
   },
   "server": {
     "transport": "http",
     "port": 3002,
-    "host": "0.0.0.0",
-    "baseUrl": ""
+    "host": "0.0.0.0"
   },
   "screenshots": {
     "dir": "/tmp/cdp-agent-mcp-screenshots"
@@ -57,6 +57,18 @@ Everything is configured in **`cdp-agent-mcp.config.json`**. The server searches
     "usageStatistics": false,
     "performanceCrux": true
   }
+}
+```
+
+**Docker** (`docker.config.json` — connects to Chrome started by autostart):
+
+```json
+{
+  "browser": {
+    "cdpEndpoint": "http://127.0.0.1:9222",
+    "viewport": "1280x720"
+  },
+  ...
 }
 ```
 
@@ -212,3 +224,29 @@ No base64 in the context. Download via the `/screenshot/` route when needed.
 | `/messages` | POST | Legacy SSE companion endpoint |
 | `/screenshot/:filename` | GET | Download a saved screenshot |
 | `/health` | GET | Returns `{"status":"ok"}` |
+
+## Troubleshooting
+
+### Enable debug logging
+
+```bash
+npm run debug
+```
+
+This sets `DEBUG=mcp:*` and shows all MCP protocol messages and internal logging. Works on Windows, macOS, and Linux (uses `cross-env`).
+
+You can also pass `--log-file debug.log` to write logs to a file:
+
+```bash
+node build/src/index.js --log-file debug.log
+```
+
+### "Cannot connect" or server starts but MCP client can't reach it
+
+1. Check the server is running: `curl http://localhost:3002/health` should return `{"status":"ok"}`
+2. If using `cdpEndpoint` in config, Chrome must be running with `--remote-debugging-port=9222` **before** the server starts. For local development, remove `cdpEndpoint` from your config and the server will launch Chrome itself
+3. Check your config file — the repo default (`cdp-agent-mcp.config.json`) is for local dev. The Docker image uses `docker.config.json` which has `cdpEndpoint` set
+
+### Windows: `'DEBUG' is not recognized`
+
+This is fixed — `npm run debug` now uses `cross-env` which works on Windows. Make sure to run `npm install` after pulling.

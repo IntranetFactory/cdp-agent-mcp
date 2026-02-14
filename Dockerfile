@@ -34,11 +34,11 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 RUN npm run build
 
-# Copy s6 service overlay and defaults
+# Copy openbox defaults (menu.xml, autostart)
 COPY root/ /
 
-# Default config goes into /defaults — linuxserver init copies to /config on first run
-COPY cdp-agent-mcp.config.json /defaults/cdp-agent-mcp.config.json
+# Docker config with cdpEndpoint set — linuxserver init copies to /config on first run
+COPY docker.config.json /defaults/cdp-agent-mcp.config.json
 
 EXPOSE 3002 9222
 VOLUME /config

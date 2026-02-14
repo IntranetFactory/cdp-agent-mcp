@@ -1,12 +1,12 @@
 {
   "browser": {
+    "cdpEndpoint": "http://127.0.0.1:9222",
     "viewport": "1280x720"
   },
   "server": {
     "transport": "http",
     "port": 3002,
-    "host": "0.0.0.0",
-    "baseUrl": ""
+    "host": "0.0.0.0"
   },
   "screenshots": {
     "dir": "/tmp/cdp-agent-mcp-screenshots"
