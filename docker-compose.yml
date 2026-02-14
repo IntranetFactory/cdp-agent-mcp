@@ -1,8 +1,7 @@
 services:
-  chrome-mcp:
+  cdp-agent-mcp:
     build: .
-    image: chrome-mcp:latest
-    container_name: chrome-mcp
+    container_name: cdp-agent-mcp
     # ports:
       # - "3000:3000"  # VNC HTTP
       # - "3001:3001"  # VNC HTTPS
