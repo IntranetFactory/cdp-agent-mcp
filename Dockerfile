@@ -42,8 +42,9 @@ RUN npm ci && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
 
-# Symlink Puppeteer's Chrome to /usr/bin so autostart can find it
-RUN ln -sf $(node -e "console.log(require('puppeteer').executablePath())") /usr/bin/google-chrome
+# Install Chrome system dependencies and symlink to /usr/bin for autostart
+RUN npx puppeteer browsers install chrome --install-deps && \
+    ln -sf $(node -e "console.log(require('puppeteer').executablePath())") /usr/bin/google-chrome
 
 # Copy source and build
 COPY tsconfig.json ./
