@@ -23,7 +23,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Rebuild kclient native modules (pulseaudio2) to match Node.js 22
-RUN cd /kclient && npm rebuild
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential pkg-config libpulse-dev && \
+    cd /kclient && npm rebuild && \
+    apt-get purge -y build-essential pkg-config libpulse-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Chrome is already installed in the kasmvnc base image — tell puppeteer to skip downloading its own
 ENV PUPPETEER_SKIP_DOWNLOAD=true
