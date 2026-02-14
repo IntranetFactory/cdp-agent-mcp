@@ -30,18 +30,20 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Chrome is already installed in the kasmvnc base image — tell puppeteer to skip downloading its own
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+# Let Puppeteer download Chrome during npm ci
+ENV PUPPETEER_SKIP_DOWNLOAD=false
 
 # Disable npm update check
 RUN npm config set update-notifier false > /dev/null
 
-# Install Node.js dependencies only (no browser download)
+# Install Node.js dependencies (Puppeteer downloads Chrome here)
 COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts && \
+RUN npm ci && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
+
+# Symlink Puppeteer's Chrome to /usr/bin so autostart can find it
+RUN ln -sf $(node -e "console.log(require('puppeteer').executablePath())") /usr/bin/google-chrome
 
 # Copy source and build
 COPY tsconfig.json ./
