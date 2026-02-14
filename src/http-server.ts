@@ -86,13 +86,14 @@ function sendJsonRpcError(
 
 export interface HttpServerOptions {
   port: number;
+  host?: string;
   server: McpServer;
 }
 
 export function createHttpServer(
   options: HttpServerOptions,
 ): http.Server {
-  const {port, server: mcpServer} = options;
+  const {port, host = '0.0.0.0', server: mcpServer} = options;
 
   // Track transports by session ID
   const transports: Record<string, Transport> = {};
@@ -152,7 +153,7 @@ export function createHttpServer(
     }
   });
 
-  httpServer.listen(port, '0.0.0.0', () => {
+  httpServer.listen(port, host, () => {
     const baseUrl = process.env['BASE_URL'] || `http://localhost:${port}`;
     console.error(`\nCDP Agent MCP server listening on port ${port}`);
     console.error(`MCP endpoint:    ${baseUrl}/mcp`);

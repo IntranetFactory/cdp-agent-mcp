@@ -11,6 +11,7 @@ import process from 'node:process';
 import type {Channel} from './browser.js';
 import {ensureBrowserConnected, ensureBrowserLaunched} from './browser.js';
 import {cliOptions, parseArguments} from './cli.js';
+import {loadConfig, applyConfigToArgs} from './config.js';
 import {createHttpServer} from './http-server.js';
 import {loadIssueDescriptions} from './issue-descriptions.js';
 import {logger, saveLogsToFile} from './logger.js';
@@ -37,6 +38,10 @@ const VERSION = '0.17.0';
 // x-release-please-end
 
 export const args = parseArguments(VERSION);
+
+// Load config file and apply values (CLI args take precedence)
+const config = loadConfig(args.config);
+applyConfigToArgs(args, config);
 
 const logFile = args.logFile ? saveLogsToFile(args.logFile) : undefined;
 if (
@@ -264,8 +269,9 @@ await initScreenshotsDir();
 if (args.transport === 'http') {
   // Set PORT env so screenshots.ts can build URLs
   const port = args.port;
+  const host = config.server?.host || '0.0.0.0';
   process.env['PORT'] = String(port);
-  createHttpServer({port, server});
+  createHttpServer({port, host, server});
   logger('Chrome DevTools MCP Server started in HTTP mode');
 } else {
   const transport = new StdioServerTransport();

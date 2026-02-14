@@ -1,30 +1,136 @@
 # cdp-agent-mcp
 
-A Docker-ready MCP server for Chrome DevTools browser automation, forked from [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp). See [README_CHROME_DEVTOOLS_MCP.md](./README_CHROME_DEVTOOLS_MCP.md) for the original documentation.
+A Docker-ready MCP server for Chrome DevTools browser automation, forked from [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp). See [README_CHROME_DEVTOOLS_MCP.md](./README_CHROME_DEVTOOLS_MCP.md) for the original upstream documentation.
 
-## What's different
-
-This fork is optimized for running inside Docker containers with HTTP-based MCP clients:
+## What's different from upstream
 
 - **HTTP transport by default** — Runs as an HTTP server with `/mcp` (Streamable HTTP) and `/sse` (legacy SSE) endpoints instead of STDIO
-- **Screenshots saved to disk** — Screenshots are no longer embedded as base64 in responses (which bloats context). They are always saved to `/tmp/cdp-agent-mcp-screenshots/` and a download URL is returned instead
-- **Screenshot download route** — A `/screenshot/:filename` HTTP route serves saved screenshots for download
-- **`BASE_URL` environment variable** — Used to construct screenshot download URLs (required when behind a reverse proxy or Docker port mapping)
-- **No npx required** — Designed to run directly with `node` inside a container
+- **Config file driven** — All settings in one `cdp-agent-mcp.config.json` file, no CLI switches needed. Same file works locally and in Docker
+- **Screenshots saved to disk** — Screenshots are never embedded as base64 in responses (which bloats context in long sessions). They're saved to disk and a download URL is returned
+- **Screenshot download route** — `/screenshot/:filename` HTTP route serves saved screenshots
+- **No npx** — Designed to run directly with `node` inside a container
 
-## Quick start
+## Prerequisites
 
-### Build and run locally
+- **Node.js** v20.19+ or v22.12+ (LTS recommended)
+- **npm** (comes with Node.js)
+- **Chrome/Chromium** — installed locally, or provided via the Docker image
+
+## Setup
 
 ```bash
+git clone <this-repo-url> cdp-agent-mcp
+cd cdp-agent-mcp
 npm install
 npm run build
-node build/src/index.js
 ```
 
-The server starts on port 3002 by default and prints its endpoints:
+> If Chrome is already installed on your system (or you're building for Docker), set `PUPPETEER_SKIP_DOWNLOAD=true` before `npm install` to skip the bundled Chrome download.
+
+## Configuration
+
+All settings live in **`cdp-agent-mcp.config.json`** in the project root. Edit this one file to configure everything — the same file is used locally and copied into the Docker image.
+
+```json
+{
+  "browser": {
+    "cdpEndpoint": "",
+    "wsEndpoint": "",
+    "headless": true,
+    "executablePath": "",
+    "channel": "stable",
+    "isolated": false,
+    "userDataDir": "",
+    "viewport": "1280x720",
+    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
+    "acceptInsecureCerts": false,
+    "proxyServer": ""
+  },
+  "server": {
+    "transport": "http",
+    "port": 3002,
+    "host": "0.0.0.0",
+    "baseUrl": ""
+  },
+  "screenshots": {
+    "dir": "/tmp/cdp-agent-mcp-screenshots"
+  },
+  "categories": {
+    "emulation": true,
+    "performance": true,
+    "network": true
+  },
+  "telemetry": {
+    "usageStatistics": false,
+    "performanceCrux": true
+  }
+}
+```
+
+### Config reference
+
+| Section | Key | Default | Description |
+|---------|-----|---------|-------------|
+| `browser` | `cdpEndpoint` | `""` | Connect to a running Chrome via CDP (e.g. `http://127.0.0.1:9222`). Leave empty to launch a new instance |
+| | `wsEndpoint` | `""` | WebSocket endpoint alternative to cdpEndpoint |
+| | `headless` | `true` | Run Chrome in headless mode (no UI) |
+| | `executablePath` | `""` | Path to Chrome binary. Empty = use system Chrome or `PUPPETEER_EXECUTABLE_PATH` env |
+| | `channel` | `"stable"` | Chrome channel: `stable`, `canary`, `beta`, `dev` |
+| | `isolated` | `false` | Use a temporary user-data-dir, cleaned up on exit |
+| | `userDataDir` | `""` | Custom Chrome profile directory |
+| | `viewport` | `"1280x720"` | Initial viewport size |
+| | `chromeArgs` | `["--no-sandbox", ...]` | Extra Chrome launch flags |
+| | `acceptInsecureCerts` | `false` | Ignore SSL certificate errors |
+| | `proxyServer` | `""` | Proxy server for Chrome |
+| `server` | `transport` | `"http"` | `"http"` for HTTP server or `"stdio"` for stdin/stdout |
+| | `port` | `3002` | HTTP server port |
+| | `host` | `"0.0.0.0"` | HTTP server bind address |
+| | `baseUrl` | `""` | Public URL for screenshot download links. Set when behind a reverse proxy. If empty, defaults to `http://localhost:{port}` |
+| `screenshots` | `dir` | `"/tmp/cdp-agent-mcp-screenshots"` | Directory where screenshots are saved |
+| `categories` | `emulation` | `true` | Enable/disable emulation tools |
+| | `performance` | `true` | Enable/disable performance tools |
+| | `network` | `true` | Enable/disable network tools |
+| `telemetry` | `usageStatistics` | `false` | Send anonymous usage statistics to Google |
+| | `performanceCrux` | `true` | Send trace URLs to CrUX API for field data |
+
+## Running the server
+
+### Development
+
+```bash
+npm run build && node build/src/index.js
+```
+
+Or use the `start` script which builds and runs:
+
+```bash
+npm start
+```
+
+### Development with debug logging
+
+```bash
+DEBUG=mcp:* npm start
+```
+
+Or set a log file in the config and use:
+
+```bash
+npm run start-debug
+```
+
+### Production
+
+```bash
+npm run build
+NODE_ENV=production node build/src/index.js
+```
+
+All settings come from `cdp-agent-mcp.config.json` — no CLI flags needed. The server prints its endpoints on startup:
 
 ```
+Loaded config from /app/cdp-agent-mcp.config.json
+
 CDP Agent MCP server listening on port 3002
 MCP endpoint:    http://localhost:3002/mcp
 SSE endpoint:    http://localhost:3002/sse
@@ -33,14 +139,58 @@ Health check:    http://localhost:3002/health
 Screenshots dir: /tmp/cdp-agent-mcp-screenshots
 ```
 
-### Docker
+### Using a custom config file path
+
+```bash
+node build/src/index.js --config /etc/cdp-agent-mcp/config.json
+```
+
+### CLI overrides
+
+Any setting from the config file can be overridden with CLI flags for one-off use:
+
+```bash
+node build/src/index.js --port 8080 --headless=false
+```
+
+## Docker
+
+### Build and run
 
 ```bash
 docker build -t cdp-agent-mcp .
-docker run -p 3002:3002 -e BASE_URL=http://localhost:3002 cdp-agent-mcp
+docker run -p 3002:3002 cdp-agent-mcp
 ```
 
-### MCP client configuration
+The Dockerfile copies `cdp-agent-mcp.config.json` into the image. To change settings, edit the config file and rebuild — or mount it at runtime:
+
+```bash
+docker run -p 3002:3002 \
+  -v $(pwd)/cdp-agent-mcp.config.json:/app/cdp-agent-mcp.config.json \
+  cdp-agent-mcp
+```
+
+### Setting BASE_URL for proxied deployments
+
+When running behind a reverse proxy (nginx, traefik, dokploy), set `server.baseUrl` in the config so screenshot URLs point to the correct public address:
+
+```json
+{
+  "server": {
+    "baseUrl": "https://mcp.example.com"
+  }
+}
+```
+
+Or via environment variable:
+
+```bash
+docker run -p 3002:3002 -e BASE_URL=https://mcp.example.com cdp-agent-mcp
+```
+
+> Docker Compose and dokploy deployment instructions are planned for a future iteration.
+
+## Connecting your MCP client
 
 Point your MCP client at the HTTP endpoint:
 
@@ -54,57 +204,32 @@ Point your MCP client at the HTTP endpoint:
 }
 ```
 
-For legacy SSE clients, use `http://localhost:3002/sse`.
+For legacy SSE-based clients, use `http://localhost:3002/sse` instead.
 
-## Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BASE_URL` | `http://localhost:$PORT` | Base URL for constructing screenshot download URLs. Set this when running behind a reverse proxy or with Docker port mapping |
-| `PORT` | `3002` | HTTP server port (can also use `--port` CLI flag) |
-| `PUPPETEER_SKIP_DOWNLOAD` | — | Set to `true` to skip Chrome download during `npm install` (use when Chrome is pre-installed in the container) |
-
-## CLI options
-
-All original chrome-devtools-mcp CLI options are supported. New options:
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--transport` | `http` | Transport mode: `http` or `stdio` |
-| `--port` | `3002` | HTTP server port (only used with `--transport=http`) |
-
-### Examples
+### Test the connection
 
 ```bash
-# HTTP mode (default) on custom port
-node build/src/index.js --port 8080
-
-# STDIO mode (original behavior)
-node build/src/index.js --transport=stdio
-
-# Connect to existing Chrome instance
-node build/src/index.js --browser-url http://127.0.0.1:9222
-
-# Headless mode
-node build/src/index.js --headless
+curl http://localhost:3002/health
 ```
+
+Should return `{"status":"ok"}`.
 
 ## Screenshots
 
-Screenshots are saved to `/tmp/cdp-agent-mcp-screenshots/` with unique filenames. The `take_screenshot` tool returns a download URL instead of embedding the image:
+Screenshots are always saved to disk (default: `/tmp/cdp-agent-mcp-screenshots/`) with unique filenames. The `take_screenshot` tool returns a download URL instead of embedding the image as base64:
 
 ```
 Screenshot saved. Download: http://localhost:3002/screenshot/1706789012345-a1b2c3d4.png
 ```
 
-The `/screenshot/:filename` route serves the files directly. This keeps the MCP context small even with many screenshots in a session.
+This keeps the MCP context small even when taking dozens of screenshots in a session.
 
 ## API routes
 
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/mcp` | POST, GET, DELETE | Streamable HTTP MCP endpoint |
-| `/sse` | GET | Legacy SSE MCP endpoint |
-| `/messages` | POST | Legacy SSE message endpoint |
+| `/mcp` | POST, GET, DELETE | Streamable HTTP MCP endpoint (protocol v2025-11-25) |
+| `/sse` | GET | Legacy SSE MCP endpoint (protocol v2024-11-05) |
+| `/messages` | POST | Legacy SSE message endpoint (paired with `/sse`) |
 | `/screenshot/:filename` | GET | Download a saved screenshot |
-| `/health` | GET | Health check endpoint |
+| `/health` | GET | Health check — returns `{"status":"ok"}` |

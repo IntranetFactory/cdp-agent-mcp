@@ -243,11 +243,17 @@ export const cliOptions = {
     description: 'Port for the HTTP server (only used with --transport=http).',
     default: 3002,
   },
+  config: {
+    type: 'string',
+    description:
+      'Path to config file. Defaults to cdp-agent-mcp.config.json in the current directory.',
+    alias: 'c',
+  },
 } satisfies Record<string, YargsOptions>;
 
 export function parseArguments(version: string, argv = process.argv) {
   const yargsInstance = yargs(hideBin(argv))
-    .scriptName('npx chrome-devtools-mcp@latest')
+    .scriptName('node build/src/index.js')
     .options(cliOptions)
     .check(args => {
       // We can't set default in the options else

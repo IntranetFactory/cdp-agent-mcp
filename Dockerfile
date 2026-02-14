@@ -36,12 +36,13 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 RUN npm run build
 
+# Copy config file — edit this file to change all settings
+COPY cdp-agent-mcp.config.json ./
+
 # Create screenshots directory
 RUN mkdir -p /tmp/cdp-agent-mcp-screenshots
 
 EXPOSE 3002
 
-ENV PORT=3002
-
-# Run the MCP server in HTTP mode with headless Chrome
-CMD ["node", "build/src/index.js", "--transport=http", "--headless", "--executable-path=/usr/bin/chromium", "--chrome-arg=--no-sandbox", "--chrome-arg=--disable-setuid-sandbox"]
+# Start the server — all settings come from cdp-agent-mcp.config.json
+CMD ["node", "build/src/index.js"]

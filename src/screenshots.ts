@@ -7,13 +7,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 
-const SCREENSHOTS_DIR = '/tmp/cdp-agent-mcp-screenshots';
+function getConfiguredDir(): string {
+  return process.env['SCREENSHOTS_DIR'] || '/tmp/cdp-agent-mcp-screenshots';
+}
 
 /**
  * Ensures the screenshots directory exists. Called once at startup.
  */
 export async function initScreenshotsDir(): Promise<void> {
-  await fs.mkdir(SCREENSHOTS_DIR, {recursive: true});
+  await fs.mkdir(getConfiguredDir(), {recursive: true});
 }
 
 /**
@@ -25,7 +27,7 @@ export async function saveScreenshot(
   extension: string,
 ): Promise<string> {
   const filename = `${Date.now()}-${randomUUID().slice(0, 8)}.${extension}`;
-  const filePath = path.join(SCREENSHOTS_DIR, filename);
+  const filePath = path.join(getConfiguredDir(), filename);
   await fs.writeFile(filePath, data);
   return filename;
 }
@@ -34,14 +36,14 @@ export async function saveScreenshot(
  * Returns the full filesystem path for a screenshot filename.
  */
 export function getScreenshotPath(filename: string): string {
-  return path.join(SCREENSHOTS_DIR, filename);
+  return path.join(getConfiguredDir(), filename);
 }
 
 /**
  * Returns the screenshots directory path.
  */
 export function getScreenshotsDir(): string {
-  return SCREENSHOTS_DIR;
+  return getConfiguredDir();
 }
 
 /**

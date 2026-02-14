@@ -1,0 +1,33 @@
+{
+  "browser": {
+    "cdpEndpoint": "",
+    "wsEndpoint": "",
+    "headless": true,
+    "executablePath": "",
+    "channel": "stable",
+    "isolated": false,
+    "userDataDir": "",
+    "viewport": "1280x720",
+    "chromeArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
+    "acceptInsecureCerts": false,
+    "proxyServer": ""
+  },
+  "server": {
+    "transport": "http",
+    "port": 3002,
+    "host": "0.0.0.0",
+    "baseUrl": ""
+  },
+  "screenshots": {
+    "dir": "/tmp/cdp-agent-mcp-screenshots"
+  },
+  "categories": {
+    "emulation": true,
+    "performance": true,
+    "network": true
+  },
+  "telemetry": {
+    "usageStatistics": false,
+    "performanceCrux": true
+  }
+}
