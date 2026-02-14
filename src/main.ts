@@ -70,17 +70,26 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 logger(`Starting Chrome DevTools MCP Server v${VERSION}`);
-const server = new McpServer(
-  {
-    name: 'chrome_devtools',
-    title: 'Chrome DevTools MCP server',
-    version: VERSION,
-  },
-  {capabilities: {logging: {}}},
-);
-server.server.setRequestHandler(SetLevelRequestSchema, () => {
-  return {};
-});
+
+function createMcpServer(): McpServer {
+  const srv = new McpServer(
+    {
+      name: 'chrome_devtools',
+      title: 'Chrome DevTools MCP server',
+      version: VERSION,
+    },
+    {capabilities: {logging: {}}},
+  );
+  srv.server.setRequestHandler(SetLevelRequestSchema, () => {
+    return {};
+  });
+  for (const tool of tools) {
+    registerToolOn(srv, tool);
+  }
+  return srv;
+}
+
+const server = createMcpServer();
 
 let context: McpContext;
 async function getContext(): Promise<McpContext> {
@@ -152,7 +161,7 @@ For more details, visit: https://github.com/ChromeDevTools/chrome-devtools-mcp#u
 
 const toolMutex = new Mutex();
 
-function registerTool(tool: ToolDefinition): void {
+function registerToolOn(srv: McpServer, tool: ToolDefinition): void {
   if (
     tool.annotations.category === ToolCategory.EMULATION &&
     args.categoryEmulation === false
@@ -189,7 +198,7 @@ function registerTool(tool: ToolDefinition): void {
   ) {
     return;
   }
-  server.registerTool(
+  srv.registerTool(
     tool.name,
     {
       description: tool.description,
@@ -257,10 +266,6 @@ function registerTool(tool: ToolDefinition): void {
   );
 }
 
-for (const tool of tools) {
-  registerTool(tool);
-}
-
 await loadIssueDescriptions();
 
 // Initialize screenshots directory
@@ -271,7 +276,7 @@ if (args.transport === 'http') {
   const port = args.port;
   const host = config.server?.host || '0.0.0.0';
   process.env['PORT'] = String(port);
-  createHttpServer({port, host, server});
+  createHttpServer({port, host, serverFactory: createMcpServer});
   logger('Chrome DevTools MCP Server started in HTTP mode');
 } else {
   const transport = new StdioServerTransport();

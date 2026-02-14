@@ -87,13 +87,13 @@ function sendJsonRpcError(
 export interface HttpServerOptions {
   port: number;
   host?: string;
-  server: McpServer;
+  serverFactory: () => McpServer;
 }
 
 export function createHttpServer(
   options: HttpServerOptions,
 ): http.Server {
-  const {port, host = '0.0.0.0', server: mcpServer} = options;
+  const {port, host = '0.0.0.0', serverFactory} = options;
 
   // Track transports by session ID
   const transports: Record<string, Transport> = {};
@@ -114,13 +114,13 @@ export function createHttpServer(
     try {
       // ─── Streamable HTTP transport: /mcp ───
       if (pathname === '/mcp') {
-        await handleMcpRoute(req, res, mcpServer, transports);
+        await handleMcpRoute(req, res, serverFactory, transports);
         return;
       }
 
       // ─── Legacy SSE transport: /sse (GET) ───
       if (pathname === '/sse' && req.method === 'GET') {
-        await handleSseRoute(req, res, mcpServer, transports);
+        await handleSseRoute(req, res, serverFactory, transports);
         return;
       }
 
@@ -184,7 +184,7 @@ export function createHttpServer(
 async function handleMcpRoute(
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  mcpServer: McpServer,
+  serverFactory: () => McpServer,
   transports: Record<string, Transport>,
 ): Promise<void> {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
@@ -214,6 +214,7 @@ async function handleMcpRoute(
           delete transports[sid];
         }
       };
+      const mcpServer = serverFactory();
       await mcpServer.connect(transport);
       await transport.handleRequest(req, res, body);
       return;
@@ -241,7 +242,7 @@ async function handleMcpRoute(
 async function handleSseRoute(
   _req: http.IncomingMessage,
   res: http.ServerResponse,
-  mcpServer: McpServer,
+  serverFactory: () => McpServer,
   transports: Record<string, Transport>,
 ): Promise<void> {
   const transport = new SSEServerTransport('/messages', res);
@@ -249,6 +250,7 @@ async function handleSseRoute(
   res.on('close', () => {
     delete transports[transport.sessionId];
   });
+  const mcpServer = serverFactory();
   await mcpServer.connect(transport);
 }
 
