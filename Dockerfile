@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/baseimage-kasmvnc:debianbookworm
+FROM lsiobase/kasmvnc:ubuntunoble-version-8076605d
 
 WORKDIR /app
 
