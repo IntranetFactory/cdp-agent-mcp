@@ -39,7 +39,8 @@ RUN npm ci && \
     chown -R 911:911 /config/.npm
 
 # Install Chrome system dependencies and symlink to /usr/bin for autostart
-RUN npx puppeteer browsers install chrome --install-deps && \
+RUN apt-get update && \
+    npx puppeteer browsers install chrome --install-deps && \
     ln -sf $(node -e "console.log(require('puppeteer').executablePath())") /usr/bin/google-chrome
 
 # Copy source and build
