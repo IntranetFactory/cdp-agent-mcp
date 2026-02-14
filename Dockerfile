@@ -15,6 +15,13 @@ ENV DISPLAY=:1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Install Node.js 22 (ubuntunoble base image only provides it at runtime via init scripts)
+RUN apt-get update && \
+    apt-get install -y ca-certificates curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 # Chrome is already installed in the kasmvnc base image — tell puppeteer to skip downloading its own
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
