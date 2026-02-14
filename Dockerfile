@@ -25,8 +25,9 @@ RUN apt-get update && \
     apt-get purge -y build-essential pkg-config libpulse-dev && \
     apt-get autoremove -y
 
-# Let Puppeteer download Chrome during npm ci
+# Let Puppeteer download Chrome during npm ci (cache outside /config which is a volume mount)
 ENV PUPPETEER_SKIP_DOWNLOAD=false
+ENV PUPPETEER_CACHE_DIR=/opt/puppeteer
 
 # Disable npm update check
 RUN npm config set update-notifier false > /dev/null
