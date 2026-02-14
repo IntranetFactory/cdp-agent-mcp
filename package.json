@@ -1,7 +1,7 @@
 {
-  "name": "chrome-devtools-mcp",
-  "version": "0.17.0",
-  "description": "MCP server for Chrome DevTools",
+  "name": "cdp-agent-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Chrome DevTools customized chrome-devtools-mcp",
   "type": "module",
   "bin": "./build/src/index.js",
   "main": "index.js",
