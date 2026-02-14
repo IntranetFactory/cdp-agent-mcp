@@ -25,9 +25,9 @@ RUN apt-get update && \
     apt-get purge -y build-essential pkg-config libpulse-dev && \
     apt-get autoremove -y
 
-# Skip Puppeteer's pinned Chrome — we install chrome@stable separately
+# Skip Puppeteer's Chrome for Testing — we install real Google Chrome via APT
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_CACHE_DIR=/opt/puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 # Disable npm update check
 RUN npm config set update-notifier false > /dev/null
@@ -39,10 +39,12 @@ RUN npm ci && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
 
-# Install Chrome stable with system dependencies, symlink to /usr/bin for autostart
-RUN apt-get update && \
-    CHROME_PATH=$(npx @puppeteer/browsers install chrome@stable --install-deps | awk '{print $2}') && \
-    ln -sf "$CHROME_PATH" /usr/bin/google-chrome
+# Install Google Chrome stable (real Chrome, not Chrome for Testing)
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+      > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends google-chrome-stable
 
 # Copy source and build
 COPY tsconfig.json ./
