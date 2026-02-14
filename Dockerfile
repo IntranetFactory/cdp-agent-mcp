@@ -38,6 +38,7 @@ RUN npm config set update-notifier false > /dev/null
 
 # Install Node.js dependencies (Puppeteer downloads Chrome here)
 COPY package.json package-lock.json* ./
+COPY scripts/ ./scripts/
 RUN npm ci && \
     npm cache clean --force && \
     chown -R 911:911 /config/.npm
