@@ -37,8 +37,8 @@ RUN npm run build
 # Copy openbox defaults (menu.xml, autostart)
 COPY root/ /
 
-# Docker config with cdpEndpoint set — linuxserver init copies to /config on first run
-COPY docker.config.json /defaults/cdp-agent-mcp.config.json
+# Default config — linuxserver init copies to /config on first run
+COPY cdp-agent-mcp.config.json /defaults/cdp-agent-mcp.config.json
 
 EXPOSE 3002 9222
 VOLUME /config

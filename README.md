@@ -33,11 +33,10 @@ Everything is configured in **`cdp-agent-mcp.config.json`**. The server searches
 2. `./cdp-agent-mcp.config.json` in the current working directory
 3. `/config/cdp-agent-mcp.config.json` (Docker volume mount)
 
-**Local development** (`cdp-agent-mcp.config.json` — launches Chrome via puppeteer):
-
 ```json
 {
   "browser": {
+    "cdpEndpoint": "http://127.0.0.1:9222",
     "viewport": "1280x720"
   },
   "server": {
@@ -60,17 +59,7 @@ Everything is configured in **`cdp-agent-mcp.config.json`**. The server searches
 }
 ```
 
-**Docker** (`docker.config.json` — connects to Chrome started by autostart):
-
-```json
-{
-  "browser": {
-    "cdpEndpoint": "http://127.0.0.1:9222",
-    "viewport": "1280x720"
-  },
-  ...
-}
-```
+The same config works everywhere. In Docker, the autostart script launches Chrome with CDP on port 9222. For local development, start Chrome yourself first (see [Local development](#local-development) below).
 
 All keys are optional — omit what you don't need. Full reference:
 
@@ -108,13 +97,27 @@ All keys are optional — omit what you don't need. Full reference:
 | `npm start` | Run the pre-built server (no compile — use after `npm run build`) |
 | `npm test` | Build + run tests |
 
-### Development
+### Local development
+
+Start Chrome with CDP enabled first, then run the MCP server:
 
 ```bash
+# 1. Start Chrome with remote debugging
+google-chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check &
+
+# 2. Build and run the MCP server
 npm run dev
 ```
 
-Builds and starts the server. Edit `cdp-agent-mcp.config.json` to change settings, then restart.
+On Windows:
+
+```bash
+# 1. Start Chrome with remote debugging
+start chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check
+
+# 2. Build and run the MCP server
+npm run dev
+```
 
 ### Debug mode
 
@@ -122,7 +125,7 @@ Builds and starts the server. Edit `cdp-agent-mcp.config.json` to change setting
 npm run debug
 ```
 
-Same as dev but with full MCP protocol debug output.
+Same as dev but with full MCP protocol debug output (works on Windows, macOS, Linux).
 
 ### Production
 
@@ -244,8 +247,7 @@ node build/src/index.js --log-file debug.log
 ### "Cannot connect" or server starts but MCP client can't reach it
 
 1. Check the server is running: `curl http://localhost:3002/health` should return `{"status":"ok"}`
-2. If using `cdpEndpoint` in config, Chrome must be running with `--remote-debugging-port=9222` **before** the server starts. For local development, remove `cdpEndpoint` from your config and the server will launch Chrome itself
-3. Check your config file — the repo default (`cdp-agent-mcp.config.json`) is for local dev. The Docker image uses `docker.config.json` which has `cdpEndpoint` set
+2. Chrome must be running with `--remote-debugging-port=9222` **before** starting the MCP server. In Docker the autostart handles this. Locally, start Chrome yourself first (see [Local development](#local-development))
 
 ### Windows: `'DEBUG' is not recognized`
 
