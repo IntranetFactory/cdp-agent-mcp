@@ -11,11 +11,13 @@ import process from 'node:process';
 import type {Channel} from './browser.js';
 import {ensureBrowserConnected, ensureBrowserLaunched} from './browser.js';
 import {cliOptions, parseArguments} from './cli.js';
+import {createHttpServer} from './http-server.js';
 import {loadIssueDescriptions} from './issue-descriptions.js';
 import {logger, saveLogsToFile} from './logger.js';
 import {McpContext} from './McpContext.js';
 import {McpResponse} from './McpResponse.js';
 import {Mutex} from './Mutex.js';
+import {initScreenshotsDir} from './screenshots.js';
 import {ClearcutLogger} from './telemetry/ClearcutLogger.js';
 import {computeFlagUsage} from './telemetry/flagUtils.js';
 import {bucketizeLatency} from './telemetry/metricUtils.js';
@@ -255,9 +257,21 @@ for (const tool of tools) {
 }
 
 await loadIssueDescriptions();
-const transport = new StdioServerTransport();
-await server.connect(transport);
-logger('Chrome DevTools MCP Server connected');
+
+// Initialize screenshots directory
+await initScreenshotsDir();
+
+if (args.transport === 'http') {
+  // Set PORT env so screenshots.ts can build URLs
+  const port = args.port;
+  process.env['PORT'] = String(port);
+  createHttpServer({port, server});
+  logger('Chrome DevTools MCP Server started in HTTP mode');
+} else {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  logger('Chrome DevTools MCP Server connected via STDIO');
+}
 logDisclaimers();
 void clearcutLogger?.logDailyActiveIfNeeded();
 void clearcutLogger?.logServerStart(computeFlagUsage(args, cliOptions));

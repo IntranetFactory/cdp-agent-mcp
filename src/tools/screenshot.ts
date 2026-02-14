@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import {saveScreenshot, getScreenshotUrl} from '../screenshots.js';
 import {zod} from '../third_party/index.js';
 import type {ElementHandle, Page} from '../third_party/index.js';
 
@@ -89,17 +90,11 @@ export const screenshot = defineTool({
     if (request.params.filePath) {
       const file = await context.saveFile(screenshot, request.params.filePath);
       response.appendResponseLine(`Saved screenshot to ${file.filename}.`);
-    } else if (screenshot.length >= 2_000_000) {
-      const {filename} = await context.saveTemporaryFile(
-        screenshot,
-        `image/${request.params.format}`,
-      );
-      response.appendResponseLine(`Saved screenshot to ${filename}.`);
     } else {
-      response.attachImage({
-        mimeType: `image/${request.params.format}`,
-        data: Buffer.from(screenshot).toString('base64'),
-      });
+      // Always save to screenshots directory and return a download URL
+      const filename = await saveScreenshot(screenshot, format);
+      const url = getScreenshotUrl(filename);
+      response.appendResponseLine(`Screenshot saved. Download: ${url}`);
     }
   },
 });

@@ -231,6 +231,18 @@ export const cliOptions = {
     hidden: true,
     describe: 'Include watchdog PID in Clearcut request headers (for testing).',
   },
+  transport: {
+    type: 'string',
+    description:
+      'Transport mode to use. "http" starts an HTTP server with /mcp and /sse endpoints. "stdio" uses standard input/output.',
+    choices: ['http', 'stdio'] as const,
+    default: 'http',
+  },
+  port: {
+    type: 'number',
+    description: 'Port for the HTTP server (only used with --transport=http).',
+    default: 3002,
+  },
 } satisfies Record<string, YargsOptions>;
 
 export function parseArguments(version: string, argv = process.argv) {
