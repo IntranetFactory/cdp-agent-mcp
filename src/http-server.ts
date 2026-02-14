@@ -34,7 +34,7 @@ function setCorsHeaders(res: http.ServerResponse): void {
   );
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Mcp-Session-Id, Last-Event-ID, Authorization',
+    'Content-Type, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID, Authorization',
   );
   res.setHeader(
     'Access-Control-Expose-Headers',
