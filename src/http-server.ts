@@ -155,12 +155,12 @@ export function createHttpServer(
 
   httpServer.listen(port, host, () => {
     const baseUrl = process.env['BASE_URL'] || `http://localhost:${port}`;
-    console.error(`\nCDP Agent MCP server listening on port ${port}`);
-    console.error(`MCP endpoint:    ${baseUrl}/mcp`);
-    console.error(`SSE endpoint:    ${baseUrl}/sse`);
-    console.error(`Screenshots:     ${baseUrl}/screenshot/`);
-    console.error(`Health check:    ${baseUrl}/health`);
-    console.error(`Screenshots dir: ${getScreenshotsDir()}\n`);
+    console.info(`\nCDP Agent MCP server listening on port ${port}`);
+    console.info(`MCP endpoint:    ${baseUrl}/mcp`);
+    console.info(`SSE endpoint:    ${baseUrl}/sse`);
+    console.info(`Screenshots:     ${baseUrl}/screenshot/`);
+    console.info(`Health check:    ${baseUrl}/health`);
+    console.info(`Screenshots dir: ${getScreenshotsDir()}\n`);
   });
 
   // Graceful shutdown
