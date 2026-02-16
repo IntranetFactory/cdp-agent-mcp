@@ -157,6 +157,16 @@ docker run -d \
 | `3000` | KasmVNC web desktop (watch the browser) |
 | `9222` | Chrome remote debugging (optional, expose if needed) |
 
+### Environment variables
+
+| Variable | Default | What it does |
+|----------|---------|--------------|
+| `BASE_URL` | — | Public URL for screenshot links (e.g. `https://mcp.example.com`). Sets `server.baseUrl` in config |
+| `VNC_USER` | `admin` | KasmVNC web UI username |
+| `VNC_PASSWORD` | `changeme` | KasmVNC web UI password |
+
+Copy `.env-sample` to `.env` and edit to configure.
+
 ### Config via volume
 
 The config file lives at `/config/cdp-agent-mcp.config.json` inside the container. On first run, the default config is copied from the image into the `/config` volume. After that, edit the file in your mounted volume:

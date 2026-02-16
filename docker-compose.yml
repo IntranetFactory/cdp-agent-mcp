@@ -24,3 +24,5 @@ services:
       - LC_ALL=C.UTF-8
       - MCP_INSECURE=true
       - BASE_URL=${BASE_URL}
+      - CUSTOM_USER=${VNC_USER:-admin}
+      - PASSWORD=${VNC_PASSWORD:-changeme}

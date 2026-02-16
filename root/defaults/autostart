@@ -32,4 +32,6 @@ xsetroot -solid blue
   --enable-automation \
   --password-store=basic \
   --use-mock-keychain \
+  --disable-dbus \
+  --disable-notifications \
   --enable-features=NetworkService,NetworkServiceInProcess &
